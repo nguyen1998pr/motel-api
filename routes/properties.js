@@ -12,4 +12,6 @@ router.get("/all", (req, res, next) => {
   });
 });
 
+router.post("/add");
+
 module.exports = router;
