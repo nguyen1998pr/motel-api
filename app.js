@@ -1,12 +1,17 @@
 const express = require("express");
+const passport = require("passport");
 const mongoose = require("mongoose");
 
 const path = require("path");
+
 const bodyParser = require("body-parser");
+
 const cors = require("cors");
+
 const config = require("./config/database");
 
 const properties = require("./routes/properties");
+const users = require("./routes/users");
 
 mongoose.connect(config.database, { useNewUrlParser: true });
 
@@ -25,7 +30,15 @@ app.use(cors());
 app.set("views", __dirname + "/public");
 app.set("view engine", "html");
 
+app.use(bodyParser.json());
+
+app.use(passport.initialize());
+
+app.use(passport.session());
+require("./config/passport")(passport);
+
 app.use("/property", properties);
+app.use("/user", users);
 
 const port = process.env.PORT || 8080;
 app.listen(port, () => {
