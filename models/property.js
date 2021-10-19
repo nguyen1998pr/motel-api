@@ -16,18 +16,14 @@ const PropertySchema = mongoose.Schema({
     price: { type: Number, default: "" },
     size: { type: Number, default: "" },
     capacity: { type: Number, default: "" },
-    pets: { type: Boolean, default: "" },
-    breakfast: { type: Boolean, default: "" },
-    futured: { type: Boolean, default: "" },
+    pets: { type: Boolean, default: false },
+    breakfast: { type: Boolean, default: false },
+    featured: { type: Boolean, default: false },
     description: { type: String, default: "" },
     extras: [{ type: String, default: "" }],
     images: [
       {
-        fields: {
-          file: {
-            url: { type: String, default: "" },
-          },
-        },
+        name: { type: String, default: "" },
       },
     ],
   },

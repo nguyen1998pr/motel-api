@@ -12,6 +12,7 @@ const config = require("./config/database");
 
 const properties = require("./routes/properties");
 const users = require("./routes/users");
+const upload = require("./routes/upload");
 
 mongoose.connect(config.database, { useNewUrlParser: true });
 
@@ -38,6 +39,7 @@ app.use(passport.session());
 require("./config/passport")(passport);
 
 app.use("/property", properties);
+app.use("/uploads", upload);
 app.use("/user", users);
 
 const port = process.env.PORT || 8080;

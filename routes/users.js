@@ -9,6 +9,7 @@ const passport = require("passport");
 
 // Import Model
 const User = require("../models/user");
+const Property = require("../models/property");
 
 const fs = require("fs");
 const multer = require("multer");
@@ -80,6 +81,17 @@ router.get(
         address: user.address,
         admin: user.admin,
       },
+    });
+  }
+);
+
+router.get(
+  "/property",
+  passport.authenticate("jwt", { session: false }),
+  (req, res, next) => {
+    Property.findUserProperties(req.user._id.toString(), (err, properties) => {
+      if (err) return res.status(500).send("Server Error!");
+      else return res.status(200).json({ obj: properties });
     });
   }
 );
