@@ -24,6 +24,11 @@ mongoose.connection.on("error", (err) => {
   console.log("Error with connection to DB:" + err);
 });
 
+mongoose.set("useFindAndModify", false);
+mongoose.set("useNewUrlParser", true);
+mongoose.set("useFindAndModify", false);
+mongoose.set("useCreateIndex", true);
+
 const app = express();
 
 app.use(cors());

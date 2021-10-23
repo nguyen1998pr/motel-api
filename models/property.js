@@ -26,6 +26,12 @@ const PropertySchema = mongoose.Schema({
         name: { type: String, default: "" },
       },
     ],
+    panoImages: [
+      {
+        name: { type: String, default: "" },
+      },
+    ],
+    scenePanoInfo: [{ type: Object, default: {} }],
   },
   user: { type: Schema.Types.ObjectId, ref: "User", required: true },
 });
@@ -39,7 +45,7 @@ module.exports.getPropertyById = function (id, callback) {
 
 // Update Property By Property ID
 module.exports.saveModProperty = function (id, property, callback) {
-  var query = { _id: id };
+  let query = { _id: id };
   Property.findOneAndUpdate(query, property, callback);
 };
 
