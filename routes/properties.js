@@ -27,6 +27,18 @@ let storage = multer.diskStorage({
 
 var upload = multer({ storage: storage });
 
+router.get("/view/:id", (req, res, next) => {
+  Property.getPropertyById(req.params.id.toString(), (err, prop) => {
+    if (err) return res.status(500).send(err);
+    if (!prop) return res.status(422).send("Property Not Found!");
+    User.getUserById(prop.user, (err, user) => {
+      if (err) return res.status(500).send(err);
+      if (user) return res.status(200).json({ user: user, prop: prop });
+      else return res.status(422).send("Owner Not Found");
+    });
+  });
+});
+
 router.get(
   "/edit/:id",
   passport.authenticate("jwt", { session: false }),
@@ -43,10 +55,10 @@ router.get(
 
 router.patch(
   "/edit/:id",
-  upload.array("photo", 100),
+  upload.array("photo", 20),
   passport.authenticate("jwt", { session: false }),
   (req, res, next) => {
-    Property.getPropertyById(req.params.id.toString(), (err, prop) => {
+    Property.getPropertyById(req.params.id.toString(), async (err, prop) => {
       if (err) return res.status(500).send(/*"Server Error!"*/ err);
       else if (!prop) return res.status(422).send("Property Not Found");
       else {
@@ -55,20 +67,24 @@ router.patch(
         else {
           let itsMe = JSON.parse(req.body.thisProp);
 
-          prop.fields.images.map((item) => {
-            deleteFile(item.name);
-          });
+          await Promise.all(
+            prop.fields.images.map((item) => {
+              deleteFile(item.name);
+            })
+          );
 
-          req.files.map((item, index) => {
-            itsMe.fields.images?.push({ name: item.filename });
-            cloudinary.v2.uploader.upload(
-              "./uploads/properties/" + item.filename,
-              {
-                use_filename: true,
-                unique_filename: false,
-              }
-            );
-          });
+          await Promise.all(
+            req.files.map((item, index) => {
+              itsMe.fields.images?.push({ name: item.filename });
+              cloudinary.uploader.upload(
+                "./uploads/properties/" + item.filename,
+                {
+                  use_filename: true,
+                  unique_filename: false,
+                }
+              );
+            })
+          );
 
           Property.saveModProperty(req.params.id.toString(), itsMe, (err) => {
             if (err) return res.status(500).send(err);
@@ -82,10 +98,10 @@ router.patch(
 
 router.patch(
   "/edit/:id/panorama",
-  upload.array("photo", 100),
+  upload.array("photo", 20),
   passport.authenticate("jwt", { session: false }),
   (req, res, next) => {
-    Property.getPropertyById(req.params.id.toString(), (err, prop) => {
+    Property.getPropertyById(req.params.id.toString(), async (err, prop) => {
       if (err) return res.status(500).send(/*"Server Error!"*/ err);
       else if (!prop) return res.status(422).send("Property Not Found");
       else {
@@ -96,20 +112,24 @@ router.patch(
 
           if (req.files.length) {
             prop.fields.panoImages?.length &&
-              prop.fields.panoImages?.map((item) => {
-                deleteFile(item.name);
-              });
+              (await Promise.all(
+                prop.fields.panoImages?.map((item) => {
+                  deleteFile(item.name);
+                })
+              ));
 
-            req.files.map((item, index) => {
-              itsMe.fields.panoImages?.push({ name: item.filename });
-              cloudinary.v2.uploader.upload(
-                "./uploads/properties/" + item.filename,
-                {
-                  use_filename: true,
-                  unique_filename: false,
-                }
-              );
-            });
+            await Promise.all(
+              req.files.map((item, index) => {
+                itsMe.fields.panoImages?.push({ name: item.filename });
+                cloudinary.uploader.upload(
+                  "./uploads/properties/" + item.filename,
+                  {
+                    use_filename: true,
+                    unique_filename: false,
+                  }
+                );
+              })
+            );
           }
 
           Property.saveModProperty(req.params.id.toString(), itsMe, (err) => {
@@ -131,22 +151,30 @@ router.get("/all", (req, res, next) => {
 
 router.post(
   "/add",
-  upload.array("photo", 100),
+  upload.array("photo", 20),
   passport.authenticate("jwt", { session: false }),
-  (req, res, next) => {
+  async (req, res, next) => {
     let itsMe = JSON.parse(req.body.thisProp);
 
     let prop = new Property(itsMe);
 
     prop.user = req.user._id;
 
-    req.files.map((item, index) => {
+    const multiplePhotoPromise = req.files.map((item) => {
       prop.fields.images?.push({ name: item.filename });
-      cloudinary.v2.uploader.upload("./uploads/properties/" + item.filename, {
-        use_filename: true,
-        unique_filename: false,
-      });
+      cloudinary.uploader.upload(
+        `./uploads/properties/${item.filename}`,
+        {
+          use_filename: true,
+          unique_filename: false,
+        }
+        // function (error, result) {
+        //   console.log(result, error);
+        // }
+      );
     });
+
+    await Promise.all(multiplePhotoPromise);
 
     Property.addProperties(prop, (err) => {
       if (err) return res.status(500).send(/*"Server Error!"*/ err);
