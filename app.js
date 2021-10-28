@@ -14,7 +14,26 @@ const properties = require("./routes/properties");
 const users = require("./routes/users");
 const upload = require("./routes/upload");
 
-mongoose.connect(config.database, { useNewUrlParser: true });
+// mongoose.connect(config.database, { useNewUrlParser: true });
+
+const connectWithRetry = function () {
+  // when using with docker, at the time we up containers. Mongodb take few seconds to starting, during that time NodeJS server will try to connect MongoDB until success.
+  return mongoose.connect(
+    config.database,
+    { useNewUrlParser: true, useFindAndModify: false },
+    (err) => {
+      if (err) {
+        console.error(
+          "Failed to connect to mongo on startup - retrying in 5 sec",
+          err
+        );
+        setTimeout(connectWithRetry, 5000);
+      }
+    }
+  );
+};
+
+connectWithRetry();
 
 mongoose.connection.on("connected", () => {
   console.log("Connected to Database:" + config.database);
@@ -24,8 +43,6 @@ mongoose.connection.on("error", (err) => {
   console.log("Error with connection to DB:" + err);
 });
 
-mongoose.set("useFindAndModify", false);
-mongoose.set("useNewUrlParser", true);
 mongoose.set("useFindAndModify", false);
 mongoose.set("useCreateIndex", true);
 
