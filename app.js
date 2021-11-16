@@ -14,8 +14,6 @@ const properties = require("./routes/properties");
 const users = require("./routes/users");
 const upload = require("./routes/upload");
 
-// mongoose.connect(config.database, { useNewUrlParser: true });
-
 const connectWithRetry = function () {
   // when using with docker, at the time we up containers. Mongodb take few seconds to starting, during that time NodeJS server will try to connect MongoDB until success.
   return mongoose.connect(

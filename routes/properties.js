@@ -183,6 +183,40 @@ router.post(
   }
 );
 
+router.delete(
+  "/delete/:id",
+  passport.authenticate("jwt", { session: false }),
+  (req, res, next) => {
+    Property.getPropertyById(req.params.id.toString(), async (err, prop) => {
+      if (err) return res.status(500).send(err);
+      if (!prop) return res.status(422).send("Property Not Found");
+      if (prop.user.toString() != req.user._id.toString())
+        return res.status(403).send("You don't own The Property");
+
+      if (prop.fields.panoImages?.length) {
+        await Promise.all(
+          prop.fields.panoImages?.map((item) => {
+            deleteFile(item.name);
+          })
+        );
+      }
+
+      if (prop.fields.images?.length) {
+        await Promise.all(
+          prop.fields.images.map((item) => {
+            deleteFile(item.name);
+          })
+        );
+      }
+
+      prop.remove((err) => {
+        if (err) return res.status(500).send(err);
+        return res.status(204).send("Property Removed!");
+      });
+    });
+  }
+);
+
 deleteFile = (image) => {
   if (fs.existsSync(path.join(__dirname, "../uploads/properties/", image))) {
     fs.unlink("./uploads/properties/" + image, (err) => {

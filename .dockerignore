@@ -1,0 +1,5 @@
+# Bỏ qua node_modules vì lát nữa ở Dockerfile sẽ chạy npm install
+node_modules
+
+# Bỏ qua ảnh mà chúng ta đã upload lên trong quá trình test
+uploads/properties/*

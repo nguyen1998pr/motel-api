@@ -12,7 +12,6 @@ services:
       # - PORT=${PORT}
     ports:
       - "${PORT}:${PORT}"
-    command: /app/entrypoint.sh # Có thêm dòng này
     restart: unless-stopped
     depends_on:
       - db
